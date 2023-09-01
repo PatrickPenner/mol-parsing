@@ -1,0 +1,80 @@
+sdfile = { ( "\n"* ~ sdfrecord ~ data_block_end ~ "\n"?)* }
+
+sdfrecord = { molfile ~ property_block ~ data_block }
+
+molfile = { header ~ connection_table }
+
+header = { molecule_name ~ (meta_data_root | free_meta_data) ~ comment_line}
+
+molecule_name = { not_newline{, 79} ~ "\n" }
+not_newline = { !"\n" ~ ANY}
+
+meta_data_root = { meta_data_depth_1? ~ "\n"}
+meta_data_depth_1 = { user_initials ~ meta_data_depth_2? }
+meta_data_depth_2 = { program_name ~ meta_data_depth_3? }
+meta_data_depth_3 = { date_time ~ meta_data_depth_4? }
+meta_data_depth_4 = { dimensional_codes ~ meta_data_depth_5? }
+meta_data_depth_5 = { major_scaling ~ meta_data_depth_6? }
+meta_data_depth_6 = { minor_scaling ~ meta_data_depth_7? }
+meta_data_depth_7 = { energy ~ registry_number? }
+user_initials = { not_newline{2} }
+program_name = { not_newline{8} }
+date_time = { not_newline{10} }
+dimensional_codes = { not_newline{2} }
+major_scaling = { ( " " | ASCII_DIGIT ){2} }
+minor_scaling = { ( " " | ASCII_DIGIT ){3} ~ ASCII_DIGIT ~ "." ~ ASCII_DIGIT{5} ~ energy?}
+energy = { (" " | ASCII_DIGIT){5} ~ ASCII_DIGIT ~ "." ~ ASCII_DIGIT{5} }
+registry_number = { ASCII_DIGIT{6} }
+free_meta_data = { not_newline{, 79} ~ "\n" }
+
+comment_line = { not_newline{, 79} ~ "\n" }
+
+connection_table = { counts_line ~ atom_line* ~ bond_line* }
+
+counts_line = { atom_count ~ bond_count ~ atom_lists_count ~ count ~ chiral_flag ~ count ~ count ~ count ~ count ~ count ~ count ~ version ~ "\n" }
+atom_count = { count }
+count = { (ASCII_DIGIT | " " ){3} }
+bond_count = { count }
+atom_lists_count = { count }
+chiral_flag = { count }
+version = { not_newline{6} }
+
+atom_line = { coordinate ~ coordinate ~ coordinate ~ " " ~ atom_symbol ~ mass_difference ~ charge ~ atom_line_depth_1? ~ "\n"}
+atom_line_depth_1 = { atom_stereo_parity ~ hydrogen_count ~ stereo_care_box ~ atom_line_depth_2? }
+atom_line_depth_2 = { valence ~ atom_line_depth_3? }
+atom_line_depth_3 = { no_hydrogen_designator ~ count ~ count ~ atom_atom_mapping ~ inversion_retention_flag ~ exact_change_flag }
+coordinate = { ( " " | "-" | ASCII_DIGIT ){4} ~ ASCII_DIGIT ~ "." ~ ASCII_DIGIT{4} }
+atom_symbol = { ( " " | "*" | ASCII_ALPHA ){3} }
+mass_difference = { ( "-" | " " ) ~ ASCII_DIGIT }
+charge = { count }
+atom_stereo_parity = { count }
+hydrogen_count = { count }
+stereo_care_box = { count }
+valence = { count }
+no_hydrogen_designator = { count }
+atom_atom_mapping = { count }
+inversion_retention_flag = { count }
+exact_change_flag = { count }
+
+bond_line = { first_atom ~ second_atom ~ bond_type ~ bond_stereo ~ bond_line_depth_1? ~ "\n" }
+bond_line_depth_1 = { count ~ bond_topology ~ bond_line_depth_2? }
+bond_line_depth_2 = { reacting_center_status }
+first_atom = { count }
+second_atom = { count }
+bond_type = { count }
+bond_stereo = { count }
+bond_topology = { count }
+reacting_center_status = { count }
+
+property_block = { (atom_alias | property)* ~ property_block_end }
+property = { "M  " ~ !"END" ~ not_newline{, 77} ~ "\n" }
+property_block_end = { "M  END" ~ "\n"? }
+atom_alias = { "A  " ~ atom_id ~ "\n" ~ alias_text ~ "\n" }
+atom_id = { not_newline{3} }
+alias_text = { not_newline{,80} }
+
+data_block = { (data_item ~ "\n"?)* }
+data_item = { data_header ~ data_line* }
+data_header = { "> " ~ not_newline{, 78}  ~ "\n" }
+data_line = { ( !"\n" ~ not_newline+ ~ "\n"? ) }
+data_block_end = { "$$$$" }

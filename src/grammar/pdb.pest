@@ -1,0 +1,262 @@
+pdbfile = { titleSection ~ primaryStructureSection ~ heterogenSection ~ secondaryStructureSection ~ connectivityAnnotationSection ~ site* ~ crystallographicTransformationSection ~ coordinateSection ~ connectivitySection ~ bookkeepingSection }
+
+titleSection = { header ~ obslte* ~ title+ ~ split* ~ caveat* ~ compnd+ ~ source+ ~ keywds+ ~ expdta+ ~ nummdl? ~ mdltyp* ~ author+ ~ revdat+ ~ sprsde* ~ jrnl* ~ remark* }
+
+header = { "HEADER" ~ ANY{4} ~ classification ~ depDate ~ ANY{3} ~ idCode ~ STRING{,14} ~ "\n" }
+classification = { STRING{40} }
+depDate = { DATE }
+idCode = { IDCODE }
+obslte = { "OBSLTE" ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+title = { "TITLE " ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n"  }
+split = { "SPLIT " ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+caveat = { "CAVEAT" ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+compnd = { "COMPND" ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+source = { "SOURCE" ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+keywds = { "KEYWDS" ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+expdta = { "EXPDTA" ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+nummdl = { "NUMMDL" ~ ANY{4} ~ STRING{,70} ~ "\n" }
+mdltyp = { "MDLTYP" ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+author = { "AUTHOR" ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+revdat = { "REVDAT" ~ modnum ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+modnum = { INTEGER{2} }
+sprsde = { "SPRSDE" ~ ANY{2} ~ CONTINUATION ~ STRING{,70} ~ "\n" }
+jrnl = { "JRNL  " ~ STRING{,74} ~ "\n" }
+remark = { "REMARK" ~ ANY{2} ~ remarkNum ~ STRING{,70} ~ "\n" }
+remarkNum = { INTEGER{2} }
+
+primaryStructureSection = { (dbref | dbref1 | dbref2 | seqadv)* ~ seqres* ~ modres* }
+
+dbref = { "DBREF " ~ ANY{1} ~ ( idCode | " "{4} ) ~ ANY{1} ~ chainId ~ ANY{1} ~ seqBegin ~ insertBegin ~ ANY{1} ~ seqEnd ~ insertEnd ~ ANY{1} ~ database ~ ANY{1} ~ dbAccession ~ ANY{1} ~ dbIdCode ~ ANY{1} ~ dbseqBegin ~ idbnsBeg ~ ANY{1} ~ dbseqEnd ~ dbinsEnd? ~ STRING{,12} ~ "\n" }
+chainId = { CHAIN_ID }
+seqBegin = { SEQ_NUM }
+insertBegin = { STRING }
+seqEnd = { SEQ_NUM }
+insertEnd = { STRING }
+database = { STRING{6} }
+dbAccession = { STRING{8} }
+dbIdCode = { STRING{12} }
+dbseqBegin = { INTEGER{5} }
+idbnsBeg = { STRING }
+dbseqEnd = { INTEGER{5} }
+dbinsEnd = { STRING }
+
+dbref1 = { "DBREF1" ~ ANY{1} ~ idCode ~ ANY{1} ~ chainId ~ ANY{1} ~ seqBegin ~ insertBegin ~ ANY{1} ~ seqEnd ~ insertEnd ~ ANY{1} ~ database ~ ANY{16} ~ dbIdCode1 ~ STRING{,13} ~ "\n" }
+dbIdCode1 = { STRING{20} }
+dbref2 = { "DBREF2" ~ ANY{1} ~ idCode ~ ANY{1} ~ chainId ~ ANY{5} ~ dbAccession2 ~ ANY{5} ~ seqBegin2 ~ ANY{2} ~ seqEnd2 ~ STRING{,13} ~ "\n" }
+dbAccession2 = { STRING{22} }
+seqBegin2 = { INTEGER{10} }
+seqEnd2 = { INTEGER{10} }
+
+seqadv = { "SEQADV" ~ ANY{1} ~ ( idCode | " "{4} ) ~ ANY{1} ~ resName ~ ANY{1} ~ chainId ~ ANY{1} ~ seqNum ~ iCode ~ ANY{1} ~ seqadvDatabase ~ ANY{1} ~ seqadvDbAccession ~ ANY{1} ~ dbRes ~ ANY{1} ~ dbSeq ~ ANY{1} ~ conflict ~ STRING{,31} ~ "\n"}
+resName = { RESIDUE_NAME }
+seqNum = { SEQ_NUM }
+iCode = { STRING }
+seqadvDatabase = { STRING{4} }
+seqadvDbAccession = { STRING{9} }
+dbRes = { STRING{3} }
+dbSeq = { STRING{5} }
+conflict = { STRING{,21} }
+
+seqres = { "SEQRES" ~ ANY{1} ~ serNum ~ ANY{1} ~ chainId ~ ANY{1} ~ numRes ~ ANY{1} ~ (ANY{1} ~ resName){,13} ~ STRING{,10} ~ "\n" }
+serNum = { INTEGER{3} }
+numRes = { INTEGER{4} }
+
+modres = { "MODRES" ~ ANY{1} ~ idCode ~ ANY{1} ~ resName ~ ANY{1} ~ chainId ~ ANY{1} ~ seqNum ~ iCode ~ ANY{1} ~ stdRes ~ ANY{2} ~ comment ~ STRING{,51} ~ "\n" }
+stdRes = { RESIDUE_NAME }
+comment = { STRING{,41} }
+
+heterogenSection = { het* ~ (hetnam | hetsyn)* ~ formul* }
+het = { "HET   " ~ ANY{1} ~ hetId ~ ANY{2} ~ chainId ~ seqNum ~ iCode ~ ANY{2} ~ numHetAtoms ~ (STRING{5} ~ hetText)? ~ STRING{,11} ~ "\n" }
+hetId = { STRING{3} }
+numHetAtoms = { INTEGER{5} }
+hetText = { STRING{,40} }
+
+hetnam = { "HETNAM" ~ ANY{2} ~ CONTINUATION ~ ANY{1} ~ hetId ~ ANY{1} ~ hetNamText ~ STRING{,11} ~ "\n" }
+hetNamText = { STRING{,55} }
+
+hetsyn = { "HETSYN" ~ ANY{2} ~ CONTINUATION ~ ANY{1} ~ hetId ~ ANY{1} ~ hetSynText ~ STRING{,11} ~ "\n" }
+hetSynText = { STRING{,55} }
+
+formul = { "FORMUL" ~ ANY{2} ~ compNum ~ ANY{2} ~ hetId ~ ANY{1} ~ CONTINUATION ~ asterisk ~ formulText ~ STRING{,11} ~ "\n"}
+compNum = { INTEGER{2} }
+asterisk = { "*" | " " }
+formulText = { STRING{,51} }
+
+secondaryStructureSection = { helix* ~ sheet* }
+
+helix = { "HELIX " ~ ANY{1} ~ serNum ~ ANY{1} ~ helixId ~ ANY{1} ~ initResName ~ ANY{1} ~ initChainId ~ ANY{1} ~ initSeqNum ~ initICode ~ ANY{1} ~ endResName ~ ANY{1} ~ endChainId ~ ANY{1} ~ endSeqNum ~ endICode ~ helixClass ~ helixComment ~ ANY{1} ~ helixLength ~ STRING{,4} ~ "\n" }
+helixId = { STRING{3} }
+initResName = { RESIDUE_NAME }
+initChainId = { CHAIN_ID }
+initSeqNum = { SEQ_NUM }
+initICode = { STRING{1} }
+endResName = { RESIDUE_NAME }
+endChainId = { CHAIN_ID }
+endSeqNum = { SEQ_NUM }
+endICode = { STRING{1} }
+helixClass = { INTEGER{2} }
+helixComment = { STRING{,30} }
+helixLength = { INTEGER{5} }
+
+sheet = { "SHEET " ~ ANY{1} ~ strand ~ ANY{1} ~ sheetId ~ numStrands ~ ANY{1} ~ initResName ~ ANY{1} ~ initChainId ~ initSeqNum ~ initICode ~ ANY{1} ~ endResName ~ ANY{1} ~ endChainId ~ endSeqNum ~ endICode ~ sense ~ (!"\n" ~ ANY{1} ~ curAtom ~ curResName ~ ANY{1} ~ curChainId ~ curResSeq ~ curICode ~ ANY{1} ~ prevAtom ~ prevResName ~ ANY{1} ~ prevChainId ~ prevResSeq ~ prevICode?)? ~ STRING{,10} ~ "\n"}
+strand = { INTEGER{3} }
+sheetId = { STRING{3} }
+numStrands = { INTEGER{2} }
+sense = { INTEGER{2} }
+curAtom = { ATOM_NAME }
+curResName = { RESIDUE_NAME }
+curChainId = { CHAIN_ID }
+curResSeq = { SEQ_NUM }
+curICode = { STRING{1} }
+prevAtom = { ATOM_NAME }
+prevResName = { RESIDUE_NAME }
+prevChainId = { CHAIN_ID }
+prevResSeq = { SEQ_NUM }
+prevICode = { STRING{1} }
+
+connectivityAnnotationSection = { ssbond* ~ link* ~ ( sltbrg | hydbnd)* ~ cispep* }
+
+ssbond = { "SSBOND" ~ ANY{1} ~ serNum ~ ANY{1} ~ resName ~ ANY{1} ~ chainId1 ~ ANY{1} ~ seqNum1 ~ iCode1 ~ ANY{3} ~ resName ~ ANY{1} ~ chainId2 ~ ANY{1} ~ seqNum2 ~ iCode2 ~ ANY{23} ~ sym1 ~ ANY{1} ~ sym2 ~ ANY{1} ~ ( ssbondLength | STRING{5} ) ~ STRING{,2} ~ "\n" }
+ssbondResName1 = { RESIDUE_NAME }
+chainId1 = { CHAIN_ID }
+seqNum1 = { SEQ_NUM }
+iCode1 = { STRING }
+ssbondResName2 = { RESIDUE_NAME }
+chainId2 = { CHAIN_ID }
+seqNum2 = { SEQ_NUM }
+iCode2 = { STRING }
+sym1 = { INTEGER{6} }
+sym2 = { INTEGER{6} }
+ssbondLength = { (INTEGER | " "){2} ~ "." ~ (INTEGER | " "){2} }
+
+link = { "LINK  " ~ ANY{6} ~ name1 ~ altLoc1 ~ resName1 ~ ANY{1} ~ chainId1 ~ resSeq1 ~ iCode1 ~ ANY{15} ~ name2 ~ altLoc2 ~ resName2 ~ ANY{1} ~ chainId2 ~ resSeq2 ~ iCode2 ~ ANY{2} ~ sym1 ~ ANY{1} ~ sym2 ~ ANY{1} ~ ( linkLength | " "{5} ) ~ STRING{,2} ~ "\n" }
+name1 = { STRING{4} }
+altLoc1 = { ALT_LOC }
+resName1 = { RESIDUE_NAME }
+resSeq1 = { SEQ_NUM }
+name2 = { STRING{4} }
+altLoc2 = { ALT_LOC }
+resName2 = { RESIDUE_NAME }
+resSeq2 = { SEQ_NUM }
+linkLength = { INTEGER{2} ~ "." ~ INTEGER{2} }
+
+hydbnd = { "HYDBND" ~ STRING{,74} ~ "\n" }
+sltbrg = { "SLTBRG" ~ STRING{,74} ~ "\n" }
+
+cispep = { "CISPEP" ~ ANY{1} ~ serNum ~ ANY{1} ~ pep1 ~ ANY{1} ~ chainId1 ~ ANY{1} ~ seqNum1 ~ iCode1 ~ ANY{3} ~ pep2 ~ ANY{1} ~ chainId2 ~ ANY{1} ~ seqNum2 ~ iCode2 ~ ANY{7} ~ modNum ~ ANY{7} ~ cispepMeasure ~ STRING{,21} ~ "\n" }
+pep1 = { RESIDUE_NAME }
+pep2 = { RESIDUE_NAME }
+modNum = { INTEGER{3} }
+cispepMeasure = { INTEGER{3} ~ "." ~ INTEGER{2} }
+
+site = { "SITE  " ~ ANY{1} ~ siteSeqNum ~ ANY{1} ~ siteId ~ ANY{1} ~ siteNumRes ~ (ANY{1} ~ resName ~ ANY{1} ~ chainId ~ seq ~ iCode){,4} ~ STRING{,20} ~ "\n" }
+siteSeqNum = { INTEGER{3} }
+siteId = { STRING{3} }
+siteNumRes = { INTEGER{2} }
+seq = { SEQ_NUM }
+
+crystallographicTransformationSection = { cryst1+ ~ origxn+ ~ scalen+ ~ matrixn* ~ tvect? }
+
+cryst1 = { "CRYST1" ~ cryst1A ~ cryst1B ~ cryst1C ~ cryst1Alpha ~ cryst1Beta ~ cryst1Gamma ~ ANY{1} ~ sGroup ~ cryst1Z ~ STRING{,10} ~ "\n" }
+cryst1A = { INTEGER{5} ~ "." ~ INTEGER{3} | " "{9} }
+cryst1B = { INTEGER{5} ~ "." ~ INTEGER{3} | " "{9} }
+cryst1C = { INTEGER{5} ~ "." ~ INTEGER{3} | " "{9} }
+cryst1Alpha = { INTEGER{4} ~ "." ~ INTEGER{2} | " "{7} }
+cryst1Beta = { INTEGER{4} ~ "." ~ INTEGER{2} | " "{7} }
+cryst1Gamma = { INTEGER{4} ~ "." ~ INTEGER{2} | " "{7} }
+sGroup = { STRING{11} }
+cryst1Z = { INTEGER{4} }
+
+origxn = { "ORIGX" ~ ( "1" | "2" | "3" ) ~ ANY{4} ~ On1 ~ On2 ~ On3 ~ ANY{5} ~ (Tn | " "{10}) ~ STRING{,25} ~ "\n" }
+On1 = { INTEGER{3} ~ "." ~ INTEGER{6} }
+On2 = { INTEGER{3} ~ "." ~ INTEGER{6} }
+On3 = { INTEGER{3} ~ "." ~ INTEGER{6} }
+Tn = { INTEGER{4} ~ "." ~ INTEGER{5} }
+
+scalen = { "SCALE" ~ ( "1" | "2" | "3" ) ~ ANY{4} ~ Sn1 ~ Sn2 ~ Sn3 ~ ANY{5} ~ Un ~ STRING{,25} ~ "\n" }
+Sn1 = { INTEGER{3} ~ "." ~ INTEGER{6} }
+Sn2 = { INTEGER{3} ~ "." ~ INTEGER{6} }
+Sn3 = { INTEGER{3} ~ "." ~ INTEGER{6} }
+Un = { INTEGER{4} ~ "." ~ INTEGER{5} }
+
+tvect = { "TVECT " ~ ANY{1} ~ INTEGER{3} ~ tvectx ~ tvecty ~ tvectz ~ STRING{,40} ~ "\n"}
+tvectx = { INTEGER{4} ~ "." ~ INTEGER{5} }
+tvecty = { INTEGER{4} ~ "." ~ INTEGER{5} }
+tvectz = { INTEGER{4} ~ "." ~ INTEGER{5} }
+
+matrixn = { "MTRIX" ~ ( "1" | "2" | "3" ) ~ ANY{1} ~ matrixnSerial ~ Mn1 ~ Mn2 ~ Mn3 ~ ANY{5} ~ Vn ~ ANY{4} ~ iGiven ~ STRING{,20} ~ "\n" }
+matrixnSerial = { INTEGER{3} }
+Mn1 = { INTEGER{3} ~ "." ~ INTEGER{6} }
+Mn2 = { INTEGER{3} ~ "." ~ INTEGER{6} }
+Mn3 = { INTEGER{3} ~ "." ~ INTEGER{6} }
+Vn = { INTEGER{4} ~ "." ~ INTEGER{5} }
+iGiven = { INTEGER }
+
+coordinateSection = { (model ~ chain+ ~ endmdl)+ | chain+ }
+
+chain = { (((atom ~ sigatm? | hetatm~ sigatm? ) ~ (anisou ~ siguij?)?)+ ~ ter?) }
+
+model = { "MODEL " ~ ANY{4} ~ modelSerial ~ STRING{,66} ~ "\n" }
+modelSerial = { INTEGER{4} }
+
+atom = { "ATOM  " ~ serial ~ ANY{1} ~ atomName ~ altLoc ~ resName ~ ANY{1} ~ chainId ~ resSeq ~ iCode ~ ANY{3} ~ atomX ~ atomY ~ atomZ ~ occupancy ~ tempFactor ~ ANY{10} ~ element ~ (charge | STRING{,2} ) ~ "\n" }
+atomName = { ATOM_NAME }
+altLoc = { ALT_LOC }
+resSeq = { SEQ_NUM }
+atomX = { INTEGER{4} ~ "." ~ INTEGER{3} }
+atomY = { INTEGER{4} ~ "." ~ INTEGER{3} }
+atomZ = { INTEGER{4} ~ "." ~ INTEGER{3} }
+occupancy = { INTEGER{3} ~ "." ~ INTEGER{2} }
+tempFactor = { INTEGER{3} ~ "." ~ INTEGER{2} }
+element = { STRING{2} }
+charge = { STRING{2} }
+
+sigatm = { "SIGATM" ~ serial ~ ANY{1} ~ atomName ~ altLoc ~ resName ~ ANY{1} ~ chainId ~ resSeq ~ iCode ~ ANY{3} ~ atomX ~ atomY ~ atomZ ~ occupancy ~ tempFactor ~ ANY{10} ~ element ~ (charge | STRING{,2} ) ~ "\n" }
+
+anisou = { "ANISOU" ~ serial ~ ANY{1} ~ atomName ~ altLoc ~ resName ~ ANY{1} ~ chainId ~ resSeq ~ iCode ~ ANY{1} ~ u11 ~ u22 ~ u33 ~ u12 ~ u13 ~ u23 ~ ANY{6} ~ element ~ (charge | STRING{,2} ) ~ "\n" }
+u11 = { INTEGER{7} }
+u22 = { INTEGER{7} }
+u33 = { INTEGER{7} }
+u12 = { INTEGER{7} }
+u13 = { INTEGER{7} }
+u23 = { INTEGER{7} }
+
+siguij = { "SIGUIJ" ~ serial ~ ANY{1} ~ atomName ~ altLoc ~ resName ~ ANY{1} ~ chainId ~ resSeq ~ iCode ~ ANY{1} ~ u11 ~ u22 ~ u33 ~ u12 ~ u13 ~ u23 ~ ANY{6} ~ element ~ (charge | STRING{,2} ) ~ "\n" }
+
+ter = { "TER   " ~ serial ~ ANY{6} ~ resName ~ ANY{1} ~ chainId ~ resSeq ~ iCode ~ STRING{,53} ~ "\n" }
+
+hetatm = { "HETATM" ~ serial ~ ANY{1} ~ atomName ~ altLoc ~ resName ~ ANY{1} ~ chainId ~ resSeq ~ iCode ~ ANY{3} ~ atomX ~ atomY ~ atomZ ~ occupancy ~ tempFactor ~ ANY{10} ~ element ~ (charge | STRING{,2} ) ~ "\n" }
+serial = { INTEGER{5} }
+
+endmdl = { "ENDMDL" ~ STRING{,74} ~ "\n" }
+
+connectivitySection = { connect* }
+connect = { "CONECT" ~ serial{,5} ~ STRING{,49} ~ "\n" }
+
+bookkeepingSection = { master ~ end }
+master = { "MASTER" ~ ANY{4} ~ numRemark ~ numUnused ~ numHet ~ numHelix ~ numSheet ~ numTurn ~ numSite ~ numXform ~ numCoord ~ numTer ~ numConect ~ numSeq ~ STRING{,10} ~ "\n" }
+numRemark = { INTEGER{5} }
+numUnused = { INTEGER{5} }
+numHet = { INTEGER{5} }
+numHelix = { INTEGER{5} }
+numSheet = { INTEGER{5} }
+numTurn = { INTEGER{5} }
+numSite = { INTEGER{5} }
+numXform = { INTEGER{5} }
+numCoord = { INTEGER{5} }
+numTer = { INTEGER{5} }
+numConect = { INTEGER{5} }
+numSeq = { INTEGER{5} }
+
+end = { "END" ~ STRING{,77} ~ "\n"? }
+
+STRING = { !"\n" ~ ANY}
+CHAIN_ID = { STRING }
+ATOM_NAME = { STRING{4} }
+ALT_LOC = { STRING }
+DATE = { ASCII_DIGIT{2} ~ "-" ~ ASCII_ALPHA{3} ~ "-" ~ ASCII_DIGIT{2} }
+IDCODE = { ( ASCII_DIGIT | "X" | "A" ) ~ (ASCII_ALPHA_UPPER | ASCII_DIGIT){3} }
+INTEGER = { ASCII_DIGIT | " " | "-" }
+SEQ_NUM = { INTEGER{4} }
+CONTINUATION = { INTEGER{2} }
+RESIDUE_NAME = { STRING{3} }
